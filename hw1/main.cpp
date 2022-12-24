@@ -3,6 +3,7 @@
 #include <eigen3/Eigen/Eigen>
 #include <iostream>
 #include <opencv2/opencv.hpp>
+#include <cmath>
 
 constexpr double MY_PI = 3.1415926;
 
@@ -26,10 +27,23 @@ Eigen::Matrix4f get_model_matrix(float rotation_angle)
     // TODO: Implement this function
     // Create the model matrix for rotating the triangle around the Z axis.
     // Then return it.
-
+    const float degree = rotation_angle / 180.0 * MY_PI;
+    Eigen::Matrix4f rotate;
+    rotate << std::cos(degree), -std::sin(degree), 0, 0,
+                    std::sin(degree), std::cos(degree), 0, 0,
+                    0, 0, 1, 0,
+                    0, 0, 0, 1;
+    model = rotate * model;
     return model;
 }
 
+/*
+    fov:视场角
+    aspect:宽高比
+    far:远平面
+    near:近平面
+    ref: https://zhuanlan.zhihu.com/p/122411512
+*/
 Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
                                       float zNear, float zFar)
 {
@@ -40,6 +54,15 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
     // TODO: Implement this function
     // Create the projection matrix for the given parameters.
     // Then return it.
+    const float halfFovDegree = (eye_fov / (2 * 180.0)) * MY_PI;
+    const float cotHalfFov = 1 / std::tan(halfFovDegree);
+    Eigen::Matrix4f matrix;
+    matrix << cotHalfFov / aspect_ratio, 0, 0, 0,
+              0, cotHalfFov, 0, 0,
+              0, 0, (zNear + zFar) / (zNear - zFar),  -(2*zNear*zFar) / (zNear-zFar),
+              0, 0, 1, 0;
+
+    projection = matrix * projection;
 
     return projection;
 }
